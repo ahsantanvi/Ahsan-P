@@ -6,6 +6,34 @@ import { GoogleGenAI, Chat } from '@google/genai';
 import React, { useState, useEffect, useRef } from 'react';
 import ReactDOM from 'react-dom/client';
 
+// --- CUSTOM HOOK FOR SCROLL ANIMATION ---
+function useOnScreen(ref, options = { threshold: 0.1 }) {
+    const [isIntersecting, setIntersecting] = useState(false);
+
+    useEffect(() => {
+        const observer = new IntersectionObserver(([entry]) => {
+            if (entry.isIntersecting) {
+                setIntersecting(true);
+                observer.unobserve(entry.target);
+            }
+        }, options);
+
+        const currentRef = ref.current;
+        if (currentRef) {
+            observer.observe(currentRef);
+        }
+
+        return () => {
+            if (currentRef) {
+                observer.unobserve(currentRef);
+            }
+        };
+    }, [ref, options]);
+
+    return isIntersecting;
+}
+
+
 // --- DATA FROM CV ---
 const portfolioData = {
   name: "Tanvir Ahsan",
@@ -66,6 +94,20 @@ const portfolioData = {
       degree: "Science",
       period: ""
     }
+  ],
+  projects: [
+    {
+        name: "AI-Powered SEO Transformation for Zager Guitar",
+        description: "Led a comprehensive SEO initiative for Zager Guitar during my tenure at MonsterClaw LLC, with the primary goal of significantly boosting organic search traffic and online visibility. I designed and implemented intelligent AI systems, leveraging powerful Large Language Models (LLMs) for advanced content optimization and custom Model Context Protocol (MCP) integrations to automate complex SEO workflows. This involved: Intelligent Keyword Strategy, Automated On-Page & Technical SEO, and Real-time Performance Optimization.",
+        result: "Achieved a remarkable 25,000 monthly organic traffic increase for Zager Guitar within one year, demonstrating the power of AI-driven SEO transformation and delivering substantial organic growth.",
+        skills: ["SEO", "Artificial Intelligence (AI)", "Generative AI", "Large Language Models (LLMs)", "Model Context Protocol (MCP)", "Python", "Selenium", "Content Strategy", "Technical SEO", "Keyword Research", "Data Analysis", "Marketing Automation", "Digital Marketing"]
+    },
+    {
+        name: "AI-Driven Organic Growth for Treta Noodle",
+        description: "Orchestrated an advanced SEO strategy for Treta Noodle while at MonsterClaw LLC, focusing on leveraging cutting-edge AI to enhance brand visibility and capture significant organic market share. My approach involved deploying intelligent AI systems, including Generative AI for scalable content production and Model Context Protocol (MCP) for seamless data integration and automated optimization. Key initiatives included: AI-Powered Content Scaling, Automated Competitive Intelligence, and Technical SEO Automation.",
+        result: "Drove a significant organic traffic increase for Treta Noodle, showcasing the efficiency and impact of AI-powered SEO solutions.",
+        skills: ["SEO", "Artificial Intelligence (AI)", "Generative AI", "Large Language Models (LLMs)", "Model Context Protocol (MCP)", "Python", "Automation", "Content Marketing", "Competitive Analysis", "Technical SEO", "Digital Strategy", "Data-Driven Marketing"]
+    }
   ]
 };
 
@@ -85,6 +127,7 @@ function AIChat() {
         Skills: ${portfolioData.skills.join(', ')}
         Experience: ${portfolioData.experience.map(e => `${e.role} at ${e.company} (${e.period}): ${e.description}`).join('; ')}
         Education: ${portfolioData.education.map(e => `${e.degree} from ${e.institution} (${e.period})`).join('; ')}
+        Projects: ${portfolioData.projects.map(p => `${p.name}: ${p.result}`).join('; ')}
     `;
 
     useEffect(() => {
@@ -103,7 +146,7 @@ function AIChat() {
         if (chatHistoryRef.current) {
             chatHistoryRef.current.scrollTop = chatHistoryRef.current.scrollHeight;
         }
-    }, [messages]);
+    }, [messages, isLoading]);
 
 
     const handleSendMessage = async (e) => {
@@ -116,40 +159,48 @@ function AIChat() {
         setUserInput('');
         
         let modelResponse = '';
-        const tempModelMessageIndex = messages.length + 1;
-        setMessages(prev => [...prev, { role: 'model', text: '...' }]);
-
         try {
             const responseStream = await chat.sendMessageStream({ message: userInput });
+            let firstChunk = true;
             for await (const chunk of responseStream) {
-                modelResponse += chunk.text;
-                setMessages(prev => {
-                    const newMessages = [...prev];
-                    newMessages[tempModelMessageIndex] = { role: 'model', text: modelResponse };
-                    return newMessages;
-                });
+                if (firstChunk) {
+                    setIsLoading(false); // Hide typing indicator
+                    modelResponse += chunk.text;
+                    setMessages(prev => [...prev, { role: 'model', text: modelResponse }]);
+                    firstChunk = false;
+                } else {
+                    modelResponse += chunk.text;
+                    setMessages(prev => {
+                        const newMessages = [...prev];
+                        newMessages[newMessages.length - 1].text = modelResponse;
+                        return newMessages;
+                    });
+                }
             }
         } catch (error) {
             console.error(error);
-            setMessages(prev => {
-                const newMessages = [...prev];
-                newMessages[tempModelMessageIndex] = { role: 'model', text: 'Sorry, I encountered an error. Please try again.' };
-                return newMessages;
-            });
+            setMessages(prev => [...prev, { role: 'model', text: 'Sorry, I encountered an error. Please try again.' }]);
         } finally {
-            setIsLoading(false);
+            setIsLoading(false); // Ensure loader is always turned off
         }
     };
 
     return (
         <div className="ai-chat-container">
             <h3>Ask My AI Assistant</h3>
-            <div className="chat-history" ref={chatHistoryRef}>
+            <div className="chat-history" ref={chatHistoryRef} role="log">
                 {messages.map((msg, index) => (
                     <div key={index} className={`chat-message ${msg.role}`}>
                         <p>{msg.text}</p>
                     </div>
                 ))}
+                {isLoading && (
+                    <div className="chat-message model">
+                        <p className="typing-indicator">
+                            <span></span><span></span><span></span>
+                        </p>
+                    </div>
+                )}
             </div>
             <form className="chat-input" onSubmit={handleSendMessage}>
                 <input
@@ -183,15 +234,24 @@ function Header() {
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
 
+    useEffect(() => {
+        if (isOpen) {
+            document.body.classList.add('no-scroll');
+        } else {
+            document.body.classList.remove('no-scroll');
+        }
+        return () => document.body.classList.remove('no-scroll');
+    }, [isOpen]);
+
     const navLinks = [
         { text: 'Home', href: '#home' },
         { text: 'Biography', href: '#about' },
+        { text: 'Projects', href: '#projects' },
         { text: 'Books', href: '#' },
         { text: 'Blog', href: '#' },
         { text: 'Tweet', href: '#' },
         { text: 'Social Work', href: '#' },
         { text: 'Tanvir in AI', href: '#contact' },
-        { text: 'Video', href: '#' },
         { text: 'Contact', href: '#contact' },
         { text: 'News', href: '#' }
     ];
@@ -207,7 +267,7 @@ function Header() {
                         ))}
                     </ul>
                 </div>
-                <button className="hamburger" onClick={() => setIsOpen(!isOpen)} aria-label="Toggle menu" aria-expanded={isOpen}>
+                <button className={`hamburger ${isOpen ? 'open' : ''}`} onClick={() => setIsOpen(!isOpen)} aria-label="Toggle menu" aria-expanded={isOpen}>
                     <span></span>
                     <span></span>
                     <span></span>
@@ -221,20 +281,35 @@ function Hero() {
     return (
         <section id="home" className="hero">
             <div className="stars"></div>
+            <div className="small-star star1"></div>
+            <div className="small-star star2"></div>
+            <div className="small-star star3"></div>
+            <div className="small-star star4"></div>
             <div className="moon"></div>
             <div className="mountains"></div>
             <div className="hero-content container">
                 <h1>{portfolioData.name}</h1>
                 <p>{portfolioData.title}</p>
-                <a href="#contact" className="cta-button">Get In Touch</a>
+                <div className="cta-group">
+                    <a href="#" className="cta-button" target="_blank" rel="noopener noreferrer">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zM9 14H7v-2h2v2zm4 0h-2v-2h2v2zm4 0h-2v-2h2v2zM5 8V6h14v2H5z"></path></svg>
+                        Schedule a Meeting
+                    </a>
+                    <a href={`mailto:${portfolioData.contact.email}`} className="cta-button-outline">
+                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"></path></svg>
+                        Send an Email
+                    </a>
+                </div>
             </div>
         </section>
     );
 }
 
 function Section({ id, title, children }) {
+    const sectionRef = useRef(null);
+    const isVisible = useOnScreen(sectionRef);
     return (
-        <section id={id} className="content-section">
+        <section id={id} ref={sectionRef} className={`content-section ${isVisible ? 'is-visible' : ''}`}>
             <div className="container">
                 <h2>{title}</h2>
                 <div className="content-body">
@@ -268,6 +343,27 @@ function Experience() {
                             <span className="company">{job.company}</span>
                             <span className="period">{job.period}</span>
                             <p>{job.description}</p>
+                        </div>
+                    </div>
+                ))}
+            </div>
+        </Section>
+    );
+}
+
+function Projects() {
+    return (
+        <Section id="projects" title="Project Contributions">
+            <div className="projects-grid">
+                {portfolioData.projects.map((project, index) => (
+                    <div key={index} className="project-card">
+                        <h3>{project.name}</h3>
+                        <p>{project.description}</p>
+                        <p className="project-result">{project.result}</p>
+                        <div className="project-skills">
+                            {project.skills.map((skill, skillIndex) => (
+                                <span key={skillIndex} className="skill-tag">{skill}</span>
+                            ))}
                         </div>
                     </div>
                 ))}
@@ -315,7 +411,7 @@ function Contact() {
                 </div>
                 <AIChat />
            </div>
-        </Section>
+        </section>
     );
 }
 
@@ -338,6 +434,7 @@ function App() {
         <Hero />
         <About />
         <Experience />
+        <Projects />
         <Skills />
         <Education />
         <Contact />

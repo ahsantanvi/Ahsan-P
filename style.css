@@ -1,3 +1,10 @@
+/*
+Theme Name: Tanvir Ahsan Portfolio
+Author: Tanvir Ahsan
+Description: A custom portfolio theme for Tanvir Ahsan, featuring a modern design and AI chat integration.
+Version: 1.0
+*/
+
 /* --- GLOBAL STYLES & VARIABLES --- */
 :root {
   --bg-color: #0d1117;
@@ -208,6 +215,35 @@ header nav {
     border-radius: 50%;
     box-shadow: 0 0 50px #FFFDE7, 0 0 100px #FFFDE7, 0 0 150px #FFFDE7, 0 0 200px #FFFDE7; /* Enhanced glow */
     z-index: 1;
+    overflow: hidden; /* Keeps the new effect inside the circle */
+}
+
+.moon::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background:
+        radial-gradient(circle at 20% 30%, hsla(199, 100%, 70%, 0.4) 0%, hsla(199, 100%, 70%, 0) 15%),
+        radial-gradient(circle at 80% 70%, hsla(211, 100%, 65%, 0.4) 0%, hsla(211, 100%, 65%, 0) 20%),
+        linear-gradient(135deg, hsla(211, 100%, 65%, 0.1) 0%, hsla(211, 100%, 65%, 0) 40%),
+        linear-gradient(35deg, hsla(199, 100%, 70%, 0.1) 20%, hsla(199, 100%, 70%, 0) 50%);
+    border-radius: 50%;
+    animation: ai-glow 10s infinite alternate ease-in-out;
+    mix-blend-mode: screen;
+}
+
+@keyframes ai-glow {
+    0% {
+        transform: scale(1) rotate(0deg);
+        opacity: 0.6;
+    }
+    100% {
+        transform: scale(1.2) rotate(90deg);
+        opacity: 1;
+    }
 }
 
 @keyframes small-star-twinkle {
@@ -368,7 +404,7 @@ header nav {
     transform: translateY(0);
 }
 
-.content-section:nth-child(even) { /* Swapped to make About dark */
+.content-section:nth-child(odd) {
   background-color: var(--primary-color);
 }
 
@@ -541,21 +577,23 @@ header nav {
 }
 
 /* --- EDUCATION --- */
-.education-list {
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-}
-
-.education-item {
+.education-list .education-item {
     background-color: var(--secondary-color);
     border-left: 4px solid var(--accent-color);
     padding: 1.5rem;
     border-radius: 0 8px 8px 0;
+    margin-bottom: 1.5rem;
 }
-.education-item h3 {
+.education-list .education-item:last-child {
+    margin-bottom: 0;
+}
+.education-list h3 {
     font-family: var(--font-body);
 }
+.education-list p {
+    margin-bottom: 0;
+}
+
 
 /* --- CONTACT & AI CHAT --- */
 .contact-container {
