@@ -38,7 +38,7 @@ function useOnScreen(ref, options = { threshold: 0.1 }) {
 const portfolioData = {
   name: "Tanvir Ahsan",
   profileImage: "https://i.ibb.co/tDy501d/profile.jpg",
-  title: "Enterprise SEO Strategist | AI & Generative AI for Organic Growth | Automation Architect | 5+ Years",
+  title: "Enterprise SEO Strategist | Generative AI for Organic Growth | Automation Architect | 5+ Years",
   location: "Dhaka, Bangladesh",
   contact: {
     email: "guitarinch@gmail.com",
