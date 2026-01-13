@@ -41,7 +41,7 @@ const portfolioData = {
   title: "Enterprise SEO Strategist | Generative AI for Organic Growth | Automation Architect | 5+ Years",
   location: "Dhaka, Bangladesh",
   contact: {
-    email: "guitarinch@gmail.com",
+    email: "tanvirreason@gmail.com",
     linkedin: "https://www.linkedin.com/in/tanvir-ahsan-reason",
   },
   summary: "I specialize in transforming enterprise SEO by building intelligent AI systems. Leveraging powerful Large Language Models (LLMs) and the innovative Model Context Protocol (MCP), I drive scalable organic growth and achieve breakthrough efficiency for businesses. My passion lies in harnessing advanced technology to optimize search strategies and deliver measurable results.",
