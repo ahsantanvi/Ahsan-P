@@ -37,7 +37,7 @@ function useOnScreen(ref, options = { threshold: 0.1 }) {
 // --- DATA FROM CV ---
 const portfolioData = {
   name: "Tanvir Ahsan",
-  profileImage: "https://i.ibb.co/tDy501d/profile.jpg",
+  profileImage: "https://media.licdn.com/dms/image/v2/D5603AQGs3oYidDwGbw/profile-displayphoto-scale_200_200/B56ZhYsfBnH0AY-/0/1753834714955?e=2147483647&v=beta&t=fiHTn5BaRDx1gEUmXzZq2eec5rzzYpUgmvLVgTsa614",
   title: "Enterprise SEO Strategist | Generative AI for Organic Growth | Automation Architect | 5+ Years",
   location: "Dhaka, Bangladesh",
   contact: {
