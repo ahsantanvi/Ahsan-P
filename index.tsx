@@ -411,7 +411,7 @@ function Contact() {
                 </div>
                 <AIChat />
            </div>
-        </section>
+        </Section>
     );
 }
 
